@@ -1,52 +1,50 @@
 <template>
-  <h1>This is Home</h1>
-  <form @submit.prevent="handleSubmit">
+  
+  <form @submit.prevent="handleSubmit" class="m-5">
     <div>
-      <label for="location">Location</label>
-      <input v-model="location" type="text" name="location" class="bg-gray-200" />
+      <h1 class="my-3">Generate Your Dating Plans</h1>
+      <hr/>
+      <div class="my-5 flex justify-start gap-5">
+        <label for="location">Location</label>
+        <input v-model="location" type="text" name="location" class="bg-gray-200" required/>
+      </div>
     </div>
-   
-
-    <div class="border-b border-gray-900/10 pb-12">
-       
+    <hr/>
+    <div class="border-b border-gray-900/10 pb-12">   
         <div class="mt-10 space-y-10">
           <fieldset>
-          <legend class="text-sm font-semibold leading-6 text-gray-900">Interests</legend>
-          <div class="mt-6 space-y-6">
-            <!-- INDOOR -->
-            <div class="relative flex gap-x-3">
-              <div class="flex h-6 items-center">
-                <input id="indoor" name="indoor" value="Indoor" type="checkbox" v-model="selectedInterests" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600" />
+            <legend class="text-sm font-semibold leading-6 text-gray-900">Interests</legend>
+            <div class="mt-6 space-y-6">
+              <!-- INDOOR -->
+              <div class="relative flex gap-x-3">
+                <div class="flex h-6 items-center">
+                  <input id="indoor" name="indoor" value="Indoor" type="checkbox" v-model="selectedInterests" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600" />
+                </div>
+                <div class="text-sm leading-6">
+                  <label for="indoor" class="font-medium text-gray-900">Indoor</label>
+                </div>
               </div>
-              <div class="text-sm leading-6">
-                <label for="indoor" class="font-medium text-gray-900">Indoor</label>
+              <!-- OUTDOOR -->
+              <div class="relative flex gap-x-3">
+                <div class="flex h-6 items-center">
+                  <input id="outdoor" name="outdoor" value="Outdoor" type="checkbox" v-model="selectedInterests" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600" />
+                </div>
+                <div class="text-sm leading-6">
+                  <label for="outdoor" class="font-medium text-gray-900">Outdoor</label>
+                </div>
+              </div>
+              <!-- ART -->
+              <div class="relative flex gap-x-3">
+                <div class="flex h-6 items-center">
+                  <input id="art" name="art" value="Art" type="checkbox" v-model="selectedInterests" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600" />
+                </div>
+                <div class="text-sm leading-6">
+                  <label for="art" class="font-medium text-gray-900">Art</label>
+                </div>
               </div>
             </div>
-            <!-- OUTDOOR -->
-            <div class="relative flex gap-x-3">
-              <div class="flex h-6 items-center">
-                <input id="outdoor" name="outdoor" value="Outdoor" type="checkbox" v-model="selectedInterests" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600" />
-              </div>
-              <div class="text-sm leading-6">
-                <label for="outdoor" class="font-medium text-gray-900">Outdoor</label>
-              </div>
-            </div>
-            <!-- ART -->
-            <div class="relative flex gap-x-3">
-              <div class="flex h-6 items-center">
-                <input id="art" name="art" value="Art" type="checkbox" v-model="selectedInterests" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600" />
-              </div>
-              <div class="text-sm leading-6">
-                <label for="art" class="font-medium text-gray-900">Art</label>
-              </div>
-            </div>
-          </div>
-        </fieldset>
-
-
-<hr/>
-
-
+          </fieldset>
+        <hr/>
           <fieldset>
             <legend class="text-sm font-semibold leading-6 text-gray-900">Time</legend>
             <p class="mt-1 text-sm leading-6 text-gray-600">Which time of the day are you going out?</p>
@@ -68,25 +66,24 @@
         </div>
       </div>
       
-      <div class="mt-6 flex items-center justify-end gap-x-6">
+      <div class="mt-6 flex items-center justify-center gap-x-6">
         <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Generate</button>
       </div>
   </form>
   <!-- Display date plans -->
-  <div v-if="datePlans">
-    <h2>Generated Date Plans</h2>
-    <ul>
-      <li v-for="plan in datePlansArray" class="bg-pink-500 mx-5 my-5">{{ plan }}</li>
-    </ul>
+  <div v-if="datePlans == 'LOADING'" class="flex flex-col gap-2 justify-center items-center">
+    <p>LOADING</p>
+    <img src="../assets/loading.gif" alt="loading" />
   </div>
-
-
-
+  <div v-else class="flex flex-col gap-2 justify-center items-center">
+    <DatePlan v-for="datePlan of datePlansArray" :datePlan="datePlan" />
+  </div>
 </template>
 
 <script setup>
 import axios from 'axios';
 import { ref, toRaw } from 'vue';
+import DatePlan from '../components/DatePlan.vue';
 
 const location = ref('');
 const selectedInterests = ref([]);
@@ -97,15 +94,22 @@ const datePlansArray= ref([]);
 
 // Handle form submission
 async function handleSubmit() {
-  // Do something with the form data
-  console.log('Location:', location.value);
-  console.log('selectedInterests:', toRaw(selectedInterests.value));
-  console.log('Time:', time.value);
-
+  datePlans.value = 'LOADING';
+  
   const interests = toRaw(selectedInterests.value).join(', ')
-  console.log(interests)
+ 
+
+  let input = `Generate 10 date plans in ${location.value} area.`
+
+  if (interests.length > 0 ) {
+    input+= `My interests includes ${interests}.`
+  }
+  if (time.value) {
+    input+= `Also this plan is for ${time.value}`
+  }
+
   const params = {
-    input: `Generate 10 date plans in ${location.value} area, and interests includes ${interests}. Also this plan is for ${time.value}`
+    input
   }
 
   try {
@@ -119,13 +123,7 @@ async function handleSubmit() {
     console.log(error)
   }
  
-
-
-
-
-
-
-  // Reset the form (optional)
+  // Reset the form
   location.value = '';
   selectedInterests.value = [];
   time.value = '';
